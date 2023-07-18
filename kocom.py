@@ -747,6 +747,7 @@ def publish_discovery(dev, sub=''):
                 'uniq_id': f'kocom_fan_{key}',
                 'icon': f'mdi:{"molecule-co2" if key == "co2" else "molecule"}',
                 'unit_of_meas': 'ppm' if key == 'co2' else 'µg/m³',
+                'ret': True,
                 'device': {
                     'name': 'kocom_wallpad',
                     'ids': 'kocom_wallpad',
@@ -774,6 +775,7 @@ def publish_discovery(dev, sub=''):
                 'uniq_id': f'kocom_air_{key}',
                 'icon': f'mdi:{icon}',
                 'unit_of_meas': unit,
+                'ret': True,
                 'device': {
                     'name': 'kocom_wallpad',
                     'ids': 'kocom_wallpad',
