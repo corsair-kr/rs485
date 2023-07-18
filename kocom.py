@@ -662,7 +662,7 @@ def packet_processor(p):
             logtxt = '[MQTT publish|fan] data[{}]'.format(state)
             mqttc.publish('kocom/livingroom/fan/state', json.dumps(state))
         elif p['src'] == 'air':
-            if int(p['value']) > 0:
+            if int(p['value'], 16) > 0:
                 state = air_parse(p['value'])
             logtxt = '[MQTT publish|air] data[{}]'.format(state)
             mqttc.publish('kocom/livingroom/air/state', json.dumps(state))
