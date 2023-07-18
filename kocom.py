@@ -644,32 +644,32 @@ def packet_processor(p):
             logtxt = '[MQTT publish|thermo] id[{}] data[{}]'.format(
                 p['src_subid'], state)
             mqttc.publish('kocom/room/thermo/' +
-                          p['src_subid'] + '/state', json.dumps(state))
+                          p['src_subid'] + '/state', json.dumps(state), retain=True)
         elif p['src'] == 'ac' and p['cmd'] == 'state':
             state = ac_parse(p['value'])
             logtxt = '[MQTT publish|ac] id[{}] data[{}]'.format(
                 p['src_subid'], state)
             mqttc.publish('kocom/room/ac/' +
-                          p['src_subid'] + '/state', json.dumps(state))
+                          p['src_subid'] + '/state', json.dumps(state), retain=True)
         elif p['src'] == 'light' and p['cmd'] == 'state':
             state = light_parse(p['value'])
             logtxt = '[MQTT publish|light] room[{}] data[{}]'.format(
                 p['src_room'], state)
             mqttc.publish(
-                'kocom/{}/light/state'.format(p['src_room']), json.dumps(state))
+                'kocom/{}/light/state'.format(p['src_room']), json.dumps(state), retain=True)
         elif p['src'] == 'fan' and p['cmd'] == 'state':
             state = fan_parse(p['value'])
             logtxt = '[MQTT publish|fan] data[{}]'.format(state)
-            mqttc.publish('kocom/livingroom/fan/state', json.dumps(state))
+            mqttc.publish('kocom/livingroom/fan/state', json.dumps(state), retain=True)
         elif p['src'] == 'air':
             if int(p['value'], 16) > 0:
                 state = air_parse(p['value'])
             logtxt = '[MQTT publish|air] data[{}]'.format(state)
-            mqttc.publish('kocom/livingroom/air/state', json.dumps(state))
+            mqttc.publish('kocom/livingroom/air/state', json.dumps(state), retain=True)
         elif p['src'] == 'gas':
             state = {'state': p['cmd']}
             logtxt = '[MQTT publish|gas] data[{}]'.format(state)
-            mqttc.publish('kocom/livingroom/gas/state', json.dumps(state))
+            mqttc.publish('kocom/livingroom/gas/state', json.dumps(state), retain=True)
     elif p['type'] == 'send' and p['dest'] == 'elevator':
         floor = int(p['value'][2:4], 16)
         rs485_floor = int(config.get('Elevator', 'rs485_floor', fallback=0))
@@ -680,7 +680,7 @@ def packet_processor(p):
         else:
             state = {'state': 'off'}
         logtxt = '[MQTT publish|elevator] data[{}]'.format(state)
-        mqttc.publish('kocom/myhome/elevator/state', json.dumps(state))
+        mqttc.publish('kocom/myhome/elevator/state', json.dumps(state), retain=True)
         # aa5530bc0044000100010300000000000000350d0d
 
     if logtxt != '' and config.get('Log', 'show_mqtt_publish') == 'True':
@@ -733,7 +733,7 @@ def publish_discovery(dev, sub=''):
             }
         }
         logtxt = '[MQTT Discovery|{}] data[{}]'.format(dev, topic)
-        mqttc.publish(topic, json.dumps(payload))
+        mqttc.publish(topic, json.dumps(payload), retain=True)
         if logtxt != '' and config.get('Log', 'show_mqtt_publish') == 'True':
             logging.info(logtxt)
 
@@ -757,7 +757,7 @@ def publish_discovery(dev, sub=''):
                 }
             }
             logtxt = '[MQTT Discovery|{}] data[{}]'.format(dev, topic)
-            mqttc.publish(topic, json.dumps(payload))
+            mqttc.publish(topic, json.dumps(payload), retain=True)
             if logtxt != '' and config.get('Log', 'show_mqtt_publish') == 'True':
                 logging.info(logtxt)
     elif dev == 'air':
@@ -785,7 +785,7 @@ def publish_discovery(dev, sub=''):
                 }
             }
             logtxt = '[MQTT Discovery|{}] data[{}]'.format(dev, topic)
-            mqttc.publish(topic, json.dumps(payload))
+            mqttc.publish(topic, json.dumps(payload), retain=True)
             if logtxt != '' and config.get('Log', 'show_mqtt_publish') == 'True':
                 logging.info(logtxt)
     elif dev == 'gas':
@@ -809,7 +809,7 @@ def publish_discovery(dev, sub=''):
             }
         }
         logtxt = '[MQTT Discovery|{}] data[{}]'.format(dev, topic)
-        mqttc.publish(topic, json.dumps(payload))
+        mqttc.publish(topic, json.dumps(payload), retain=True)
         if logtxt != '' and config.get('Log', 'show_mqtt_publish') == 'True':
             logging.info(logtxt)
     elif dev == 'elevator':
@@ -833,7 +833,7 @@ def publish_discovery(dev, sub=''):
             }
         }
         logtxt = '[MQTT Discovery|{}] data[{}]'.format(dev, topic)
-        mqttc.publish(topic, json.dumps(payload))
+        mqttc.publish(topic, json.dumps(payload), retain=True)
         if logtxt != '' and config.get('Log', 'show_mqtt_publish') == 'True':
             logging.info(logtxt)
     elif dev == 'light':
@@ -861,7 +861,7 @@ def publish_discovery(dev, sub=''):
                 }
             }
             logtxt = '[MQTT Discovery|{}{}] data[{}]'.format(dev, num, topic)
-            mqttc.publish(topic, json.dumps(payload))
+            mqttc.publish(topic, json.dumps(payload), retain=True)
             if logtxt != '' and config.get('Log', 'show_mqtt_publish') == 'True':
                 logging.info(logtxt)
     elif dev == 'thermo':
@@ -895,7 +895,7 @@ def publish_discovery(dev, sub=''):
             }
         }
         logtxt = '[MQTT Discovery|{}{}] data[{}]'.format(dev, num, topic)
-        mqttc.publish(topic, json.dumps(payload))
+        mqttc.publish(topic, json.dumps(payload), retain=True)
         if logtxt != '' and config.get('Log', 'show_mqtt_publish') == 'True':
             logging.info(logtxt)
     elif dev == 'ac':
@@ -934,7 +934,7 @@ def publish_discovery(dev, sub=''):
             }
         }
         logtxt = '[MQTT Discovery|{}{}] data[{}]'.format(dev, num, topic)
-        mqttc.publish(topic, json.dumps(payload))
+        mqttc.publish(topic, json.dumps(payload), retain=True)
         if logtxt != '' and config.get('Log', 'show_mqtt_publish') == 'True':
             logging.info(logtxt)
     elif dev == 'query':
