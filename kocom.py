@@ -299,8 +299,8 @@ def light_parse(value):
 
 
 def fan_parse(value):
-    sensor_dict = {"pm": "molecule", "co2": "molecule-co2"}
     global sensor_dict 
+    sensor_dict = {"pm": "molecule", "co2": "molecule-co2"}
 
     preset_dic = {'40':'low', '80':'medium', 'c0':'high'}
 #   state = 'off' if value[:2] == '10' else 'on'
@@ -314,8 +314,8 @@ def fan_parse(value):
     return { 'state': state, 'preset': preset, 'pm': pm, 'co2': co2}
 
 def air_parse(value):
-    airMap_dic = {"pm10": "molecule", "pm2.5": "molecule", "co2": "molecule-co2", "voc": "molecule", "temperature": "thermometer", "humidity": "water-percent"}
     global airMap_dic 
+    airMap_dic = {"pm10": "molecule", "pm2.5": "molecule", "co2": "molecule-co2", "voc": "molecule", "temperature": "thermometer", "humidity": "water-percent"}
         
     airAttr = {
         "pm10": int(value[:2], 16),
@@ -461,6 +461,24 @@ def mqtt_on_message(mqttc, obj, msg):
 
         value = '1100' + settemp_hex + '0000000000'
         send_wait_response(dest=dev_id, value=value, log='thermo settemp')
+        
+    if 'ac' in topic_d and 'ac_mode' in topic_d:
+        is_on = "10" if command != "off" else "00"
+        acmode_dic = {'cool': '00', 'fan_only': '01', 'dry': '02', 'auto': '03'}
+        fan = {'LOW': '01', 'MEDIUM': '02', 'HIGH': '03'}
+        dev_id = device_h_dic['ac']+'{0:02x}'.format(int(topic_d[3]))
+        q = query(dev_id)
+        settemp_hex = '{0:02x}'.format(int(config.get('User', 'init_temp'))) if q['flag']!=False else '20'
+        value = is_on + acmode_dic.get(command, '00') + fan.get(command, '01') + '0000' + settemp_hex + '0000'
+        send_wait_response(dest=dev_id, value=value, log='ac heatmode')
+
+    # ac set temp : kocom/room/ac/3/set_temp/command
+    elif 'ac' in topic_d and 'set_temp' in topic_d:
+        dev_id = device_h_dic['ac']+'{0:02x}'.format(int(topic_d[3]))
+        settemp_hex = '{0:02x}'.format(int(float(command)))
+
+        value = '10000000' + settemp_hex + '0000'
+        send_wait_response(dest=dev_id, value=value, log='ac settemp')
 
     # light on/off : kocom/livingroom/light/1/command
     elif 'light' in topic_d:
