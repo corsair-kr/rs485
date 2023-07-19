@@ -1,6 +1,6 @@
 ---
 name: Kocom Wallpad with RS485 for DL E&C
-version: 1.4
+version: 1.0
 slug: kocom_py
 description: Kocom Wallpad for Home Assistant
 arch:
