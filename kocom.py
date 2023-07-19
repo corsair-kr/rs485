@@ -37,18 +37,15 @@ chksum_position = 18  # 18th byte
 
 type_t_dic = {'30b': 'send', '30d': 'ack'}
 seq_t_dic = {'c': 1, 'd': 2, 'e': 3, 'f': 4}
-device_t_dic = {'01': 'wallpad', '0e': 'light', '2c': 'gas', '36': 'thermo',
-                '39': 'ac', '3b': 'plug', '44': 'elevator', '48': 'fan', '98': 'air'}
+device_t_dic = {'01': 'wallpad', '0e': 'light', '2c': 'gas', '36': 'thermo', '39': 'ac', '3b': 'plug', '44': 'elevator', '48': 'fan', '98': 'air'}
 cmd_t_dic = {'00': 'state', '01': 'on', '02': 'off', '3a': 'query'}
-room_t_dic = {'00': 'livingroom',
-              '01': 'bedroom', '02': 'room1', '03': 'room2'}
+room_t_dic = {'00': 'livingroom', '01': 'bedroom', '02': 'room1', '03': 'room2'}
 
 type_h_dic = {v: k for k, v in type_t_dic.items()}
 seq_h_dic = {v: k for k, v in seq_t_dic.items()}
 device_h_dic = {v: k for k, v in device_t_dic.items()}
 cmd_h_dic = {v: k for k, v in cmd_t_dic.items()}
-room_h_dic = {'livingroom': '00',
-              'bedroom': '01', 'room1': '02', 'room2': '03'}
+room_h_dic = {'livingroom': '00', 'bedroom': '01', 'room1': '02', 'room2': '03'}
 
 # mqtt functions ----------------------------
 
@@ -62,8 +59,7 @@ def init_mqttc():
 
     if config.get('MQTT', 'mqtt_allow_anonymous') != 'True':
         logtxt = '[MQTT] connecting (using username and password)'
-        mqttc.username_pw_set(username=config.get('MQTT', 'mqtt_username', fallback=''),
-                              password=config.get('MQTT', 'mqtt_password', fallback=''))
+        mqttc.username_pw_set(username=config.get('MQTT', 'mqtt_username', fallback=''), password=config.get('MQTT', 'mqtt_password', fallback=''))
     else:
         logtxt = '[MQTT] connecting (anonymous)'
 
@@ -94,8 +90,7 @@ def mqtt_on_connect(mqttc, userdata, flags, rc):
         logging.info('[MQTT] Connected - 0: OK')
         mqttc.subscribe('kocom/#', 0)
     else:
-        logging.error(
-            '[MQTT] Connection error - {}: {}'.format(rc, mqtt.connack_string(rc)))
+        logging.error('[MQTT] Connection error - {}: {}'.format(rc, mqtt.connack_string(rc)))
 
 
 def mqtt_on_disconnect(mqttc, userdata, rc=0):
@@ -122,8 +117,7 @@ class RS485Wrapper:
         if self.type == 'serial':
             self.conn = self.connect_serial(self.serial_port)
         elif self.type == 'socket':
-            self.conn = self.connect_socket(
-                self.socket_server, self.socket_port)
+            self.conn = self.connect_socket(self.socket_server, self.socket_port)
         return self.conn
 
     def connect_serial(self, SERIAL_PORT):
@@ -151,11 +145,9 @@ class RS485Wrapper:
         try:
             sock.connect((SOCKET_SERVER, SOCKET_PORT))
         except Exception as e:
-            logging.error('[RS485] Socket connection failure : {} | server {}, port {}'.format(
-                e, SOCKET_SERVER, SOCKET_PORT))
+            logging.error('[RS485] Socket connection failure : {} | server {}, port {}'.format(e, SOCKET_SERVER, SOCKET_PORT))
             return False
-        logging.info('[RS485] Socket connected | server {}, port {}'.format(
-            SOCKET_SERVER, SOCKET_PORT))
+        logging.info('[RS485] Socket connected | server {}, port {}'.format(SOCKET_SERVER, SOCKET_PORT))
         # set read timeout a little bit more than polling interval
         sock.settimeout(polling_interval+15)
         return sock
@@ -190,8 +182,7 @@ class RS485Wrapper:
             time.sleep(1)
         while time.time() - self.last_read_time < read_write_gap:
             # logging.debug('pending write : time too short after last read')
-            time.sleep(
-                max([0, read_write_gap - time.time() + self.last_read_time]))
+            time.sleep(max([0, read_write_gap - time.time() + self.last_read_time]))
         if self.type == 'serial':
             return self.conn.write(data)
         elif self.type == 'socket':
@@ -239,8 +230,7 @@ def send(dest, src, cmd, value, log=None, check_ack=True):
             break
 
         # wait and checking for ACK
-        ack_data.append(type_h_dic['ack'] + seq_h +
-                        '00' + src + dest + cmd + value)
+        ack_data.append(type_h_dic['ack'] + seq_h + '00' + src + dest + cmd + value)
         try:
             # random wait between 1.3~1.5 seconds for ACK
             ack_q.get(True, 1.3+0.2*random.random())
@@ -252,8 +242,7 @@ def send(dest, src, cmd, value, log=None, check_ack=True):
             pass
 
     if ret == False:
-        logging.info(
-            '[RS485] send failed. closing RS485. it will try to reconnect to RS485 shortly.')
+        logging.info('[RS485] send failed. closing RS485. it will try to reconnect to RS485 shortly.')
         rs485.close()
     ack_data.clear()
     send_lock.release()
@@ -312,8 +301,8 @@ def thermo_parse(value):
 
 def light_parse(value):
     ret = {}
-    for i in range(0, int(config.get('User', 'light_count'))):
-        ret['light_'+str(i)] = 'off' if value[(i+1)*2-2:(i+1)*2] == '00' else 'on'
+    for i in range(1, int(config.get('User', 'light_count'))+1):
+        ret['light_'+str(i)] = 'off' if value[i*2-2:i*2] == '00' else 'on'
     return ret
 
 
@@ -324,8 +313,7 @@ def fan_parse(value):
     preset = 'off' if state == 'off' else preset_dic.get(value[4:6])
     pm = int(value[6:8], 16)
     co2 = int(value[8:12], 16) / 2
-    logtxt = '[MQTT Parse | Fan] value[{}], state[{}]'.format(
-        value, state)    # 20221108 주석기능 추가
+    logtxt = '[MQTT Parse | Fan] value[{}], state[{}]'.format(value, state)    # 20221108 주석기능 추가
     if logtxt != '' and config.get('Log', 'show_recv_hex') == 'True':
         logging.info(logtxt)
     return {'state': state, 'preset': preset, 'pm': pm, 'co2': co2}
@@ -368,10 +356,8 @@ def air_parse(value):
         'temperature': int(value[12:14], 16),
         'humidity': int(value[14:16], 16)
     }
-    airAttr['score'] = calculate_air_quality(airAttr['temperature'],
-                          airAttr['humidity'], airAttr['co2'], airAttr['tvocs'], airAttr['pm10'], airAttr['pm25'])
-    logtxt = '[MQTT Parse | Air] value[{}], state[{}]'.format(
-        value, airAttr)    # 20221108 주석기능 추가
+    airAttr['score'] = calculate_air_quality(airAttr['temperature'], airAttr['humidity'], airAttr['co2'], airAttr['tvocs'], airAttr['pm10'], airAttr['pm25'])
+    logtxt = '[MQTT Parse | Air] value[{}], state[{}]'.format(value, airAttr)    # 20221108 주석기능 추가
     if logtxt != '' and config.get('Log', 'show_recv_hex') == 'True':
         logging.info(logtxt)
     return airAttr
@@ -385,8 +371,7 @@ def ac_parse(value):
     fan = spd_dic.get(value[4:6])
     temperature = int(value[8:10], 16)
     target = int(value[10:12], 16)
-    logtxt = '[MQTT Parse | Ac] value[{}], state[{}]'.format(
-        value, state)    # 20221108 주석기능 추가
+    logtxt = '[MQTT Parse | Ac] value[{}], state[{}]'.format(value, state)    # 20221108 주석기능 추가
     if logtxt != '' and config.get('Log', 'show_recv_hex') == 'True':
         logging.info(logtxt)
     return {'state': state, 'fan': fan, 'temperature': temperature, 'target': target}
@@ -404,14 +389,12 @@ def query(device_h, publish=False, enforce=False):
             break
         if c['type'] == 'ack' and c['src'] == 'wallpad' and c['dest_h'] == device_h and c['cmd'] != 'query':
             if (config.get('Log', 'show_query_hex') == 'True'):
-                logging.info('[cache|{}{}] query cache {}'.format(
-                    c['dest'], c['dest_subid'], c['data_h']))
+                logging.info('[cache|{}{}] query cache {}'.format(c['dest'], c['dest_subid'], c['data_h']))
             return c  # return the value in the cache
 
     # if there's no cache data within polling inteval, then send query packet
     if (config.get('Log', 'show_query_hex') == 'True'):
-        log = 'query ' + \
-            device_t_dic.get(device_h[:2]) + str(int(device_h[2:4], 16))
+        log = 'query ' + device_t_dic.get(device_h[:2]) + str(int(device_h[2:4], 16))
     else:
         log = None
     return send_wait_response(dest=device_h, cmd=cmd_h_dic['query'], log=log, publish=publish)
@@ -448,11 +431,9 @@ def call_elevator_tcpip():
     try:
         sock.connect((APT_SERVER, APT_PORT))
     except Exception as e:
-        logging.error('Apartment server socket connection failure : {} | server {}, port {}'.format(
-            e, APT_SERVER, APT_PORT))
+        logging.error('Apartment server socket connection failure : {} | server {}, port {}'.format(e, APT_SERVER, APT_PORT))
         return False
-    logging.info('Apartment server socket connected | server {}, port {}'.format(
-        APT_SERVER, APT_PORT))
+    logging.info('Apartment server socket connected | server {}, port {}'.format(APT_SERVER, APT_PORT))
 
     try:
         sock.send(bytearray.fromhex(config.get('Elevator', 'tcpip_packet1')))
@@ -479,8 +460,7 @@ def call_elevator_tcpip():
         logging.info('recv from apt server: '+''.join('%02x' % i for i in rcv))
         sock.close()
     except Exception as e:
-        logging.error(
-            'Apartment server socket communication failure : {}'.format(e))
+        logging.error('Apartment server socket communication failure : {}'.format(e))
         return False
 
     return True
@@ -496,19 +476,17 @@ def mqtt_on_message(mqttc, obj, msg):
     if topic_d[-1] != 'command':
         return
 
-    logging.info('[MQTT RECV] ' + msg.topic + ' ' +
-                 str(msg.qos) + ' ' + str(msg.payload))
+    logging.info('[MQTT RECV] ' + msg.topic + ' ' + str(msg.qos) + ' ' + str(msg.payload))
 
     # thermo heat/off : kocom/room/thermo/3/heat_mode/command
     if 'thermo' in topic_d and 'heat_mode' in topic_d:
-        #       heatmode_dic = {'heat': '11', 'off': '01'}
+        # heatmode_dic = {'heat': '11', 'off': '01'}
         heatmode_dic = {'heat': '11', 'off': '00'}
 
         dev_id = device_h_dic['thermo']+'{0:02x}'.format(int(topic_d[3]))
         q = query(dev_id)
         # settemp_hex = q['value'][4:6] if q['flag']!=False else '14'
-        settemp_hex = '{0:02x}'.format(
-            int(config.get('User', 'thermo_init_temp'))) if q['flag'] != False else '14'
+        settemp_hex = '{0:02x}'.format(int(config.get('User', 'thermo_init_temp'))) if q['flag'] != False else '14'
         value = heatmode_dic.get(command) + '00' + settemp_hex + '0000000000'
         send_wait_response(dest=dev_id, value=value, log='thermo heatmode')
 
@@ -520,25 +498,31 @@ def mqtt_on_message(mqttc, obj, msg):
         value = '1100' + settemp_hex + '0000000000'
         send_wait_response(dest=dev_id, value=value, log='thermo settemp')
 
-    if 'ac' in topic_d and ('ac_mode' in topic_d or 'fan_mode' in topic_d):
+    elif 'ac' in topic_d and 'ac_mode' in topic_d:
         is_on = '10' if command != 'off' else '00'
-        acmode_dic = {'cool': '00', 'fan_only': '01',
-                      'dry': '02', 'auto': '03'}
-        fan = {'LOW': '01', 'MEDIUM': '02', 'HIGH': '03'}
+        acmode_dic = {'off': '00', 'cool': '00','fan_only': '01', 'dry': '02', 'auto': '03'}
         dev_id = device_h_dic['ac']+'{0:02x}'.format(int(topic_d[3]))
-        q = query(dev_id)
-        settemp_hex = '{0:02x}'.format(
-            int(config.get('User', 'ac_init_temp'))) if q['flag'] != False else '12'
-        value = is_on + acmode_dic.get(command, config.get('User', 'ac_init_mode')) + fan.get(
-            command, config.get('User', 'ac_init_fan_mode')) + '0000' + settemp_hex + '0000'
+        #q = query(dev_id)
+        #settemp_hex = '{0:02x}'.format(int(config.get('User', 'ac_init_temp'))) if q['flag'] != False else '12'
+        
+        value = is_on + acmode_dic.get(command, config.get('User', 'ac_init_mode')) + '000000000000'
         send_wait_response(dest=dev_id, value=value, log='ac mode')
 
+    elif 'ac' in topic_d and 'fan_mode' in topic_d:
+        fan_dic = {'LOW': '01', 'MEDIUM': '02', 'HIGH': '03'}
+        dev_id = device_h_dic['ac']+'{0:02x}'.format(int(topic_d[3]))
+        #q = query(dev_id)
+        #settemp_hex = '{0:02x}'.format(int(config.get('User', 'ac_init_temp'))) if q['flag'] != False else '12'
+        
+        value = '1010' + fan_dic.get(command, config.get('User', 'ac_init_fan_mode')) + '0000000000'
+        send_wait_response(dest=dev_id, value=value, log='ac mode')
+        
     # ac set temp : kocom/room/ac/3/set_temp/command
     elif 'ac' in topic_d and 'set_temp' in topic_d:
         dev_id = device_h_dic['ac']+'{0:02x}'.format(int(topic_d[3]))
         settemp_hex = '{0:02x}'.format(int(float(command)))
 
-        value = '10000000' + settemp_hex + '0000'
+        value = '1010000000' + settemp_hex + '0000'
         send_wait_response(dest=dev_id, value=value, log='ac settemp')
 
     # light on/off : kocom/livingroom/light/1/command
@@ -546,7 +530,7 @@ def mqtt_on_message(mqttc, obj, msg):
         dev_id = device_h_dic['light'] + room_h_dic.get(topic_d[1])
         value = query(dev_id)['value']
         onoff_hex = 'ff' if command == 'on' else '00'
-        light_id = int(topic_d[3]) + 1
+        light_id = int(topic_d[3])
 
         # turn on/off multiple lights at once : e.g) kocom/livingroom/light/12/command
         if light_id > 0:
@@ -575,8 +559,7 @@ def mqtt_on_message(mqttc, obj, msg):
         if command == 'on':
             ret_elevator = None
             if config.get('Elevator', 'type', fallback='rs485') == 'rs485':
-                ret_elevator = send(dest=device_h_dic['wallpad']+'00', src=dev_id,
-                                    cmd=cmd_h_dic['on'], value='0'*16, log='elevator', check_ack=False)
+                ret_elevator = send(dest=device_h_dic['wallpad']+'00', src=dev_id, cmd=cmd_h_dic['on'], value='0'*16, log='elevator', check_ack=False)
             elif config.get('Elevator', 'type', fallback='rs485') == 'tcpip':
                 ret_elevator = call_elevator_tcpip()
 
@@ -584,15 +567,12 @@ def mqtt_on_message(mqttc, obj, msg):
                 logging.debug('elevator send failed')
                 return
 
-            threading.Thread(target=mqttc.publish, args=(
-                'kocom/myhome/elevator/state', state_on)).start()
+            threading.Thread(target=mqttc.publish, args=('kocom/myhome/elevator/state', state_on)).start()
             if config.get('Elevator', 'rs485_floor', fallback=None) == None:
-                threading.Timer(5, mqttc.publish, args=(
-                    'kocom/myhome/elevator/state', state_off)).start()
+                threading.Timer(5, mqttc.publish, args=('kocom/myhome/elevator/state', state_off)).start()
 
         elif command == 'off':
-            threading.Thread(target=mqttc.publish, args=(
-                'kocom/myhome/elevator/state', state_off)).start()
+            threading.Thread(target=mqttc.publish, args=('kocom/myhome/elevator/state', state_off)).start()
 
     # kocom/livingroom/fan/set_preset_mode/command
     elif 'fan' in topic_d and 'set_preset_mode' in topic_d:
@@ -641,22 +621,16 @@ def packet_processor(p):
     if p['type'] == 'send' and p['dest'] == 'wallpad':  # response packet to wallpad
         if p['src'] == 'thermo' and p['cmd'] == 'state':
             state = thermo_parse(p['value'])
-            logtxt = '[MQTT publish|thermo] id[{}] data[{}]'.format(
-                p['src_subid'], state)
-            mqttc.publish('kocom/room/thermo/' +
-                          p['src_subid'] + '/state', json.dumps(state), retain=True)
+            logtxt = '[MQTT publish|thermo] id[{}] data[{}]'.format(p['src_subid'], state)
+            mqttc.publish('kocom/room/thermo/' + p['src_subid'] + '/state', json.dumps(state), retain=True)
         elif p['src'] == 'ac' and p['cmd'] == 'state':
             state = ac_parse(p['value'])
-            logtxt = '[MQTT publish|ac] id[{}] data[{}]'.format(
-                p['src_subid'], state)
-            mqttc.publish('kocom/room/ac/' +
-                          p['src_subid'] + '/state', json.dumps(state), retain=True)
+            logtxt = '[MQTT publish|ac] id[{}] data[{}]'.format(p['src_subid'], state)
+            mqttc.publish('kocom/room/ac/' + p['src_subid'] + '/state', json.dumps(state), retain=True)
         elif p['src'] == 'light' and p['cmd'] == 'state':
             state = light_parse(p['value'])
-            logtxt = '[MQTT publish|light] room[{}] data[{}]'.format(
-                p['src_room'], state)
-            mqttc.publish(
-                'kocom/{}/light/state'.format(p['src_room']), json.dumps(state), retain=True)
+            logtxt = '[MQTT publish|light] room[{}] data[{}]'.format(p['src_room'], state)
+            mqttc.publish('kocom/{}/light/state'.format(p['src_room']), json.dumps(state), retain=True)
         elif p['src'] == 'fan' and p['cmd'] == 'state':
             state = fan_parse(p['value'])
             logtxt = '[MQTT publish|fan] data[{}]'.format(state)
@@ -690,12 +664,10 @@ def packet_processor(p):
 # ===== publish MQTT Devices Discovery =====
 
 def discovery():
-    enabled_devices = [x.strip()
-                       for x in config.get('Device', 'enabled').split(',')]
+    enabled_devices = [x.strip() for x in config.get('Device', 'enabled').split(',')]
     for device in enabled_devices:
         if device in ['light', 'thermo', 'ac']:
-            device_rooms = [x.strip() for x in config.get(
-                'Device', device+'_room').split(',')]
+            device_rooms = [x.strip() for x in config.get('Device', device+'_room').split(',')]
         for room in device_rooms:
             log_txt = '[MQTT Discovery|{}] data[{}]'.format(device, room)
             publish_discovery(device, room)
@@ -722,7 +694,6 @@ def publish_discovery(dev, sub=''):
             'pr_modes': ['off', 'low', 'medium', 'high'],
             'pl_on': 'on',
             'pl_off': 'off',
-            'qos': 0,
             'uniq_id': 'kocom_fan',
             'device': {
                 'name': 'kocom_wallpad',
@@ -743,7 +714,6 @@ def publish_discovery(dev, sub=''):
                 'name': f'kocom_fan_{key}',
                 'stat_t': 'kocom/livingroom/fan/state',
                 'val_tpl': '{{ value_json.' + key + ' }}',
-                'qos': 0,
                 'uniq_id': f'kocom_fan_{key}',
                 'icon': f'mdi:{"molecule-co2" if key == "co2" else "molecule"}',
                 'unit_of_meas': 'ppm' if key == 'co2' else 'µg/m³',
@@ -761,8 +731,7 @@ def publish_discovery(dev, sub=''):
             if logtxt != '' and config.get('Log', 'show_mqtt_publish') == 'True':
                 logging.info(logtxt)
     elif dev == 'air':
-        air_attr = {'pm10': ['molecule', 'µg/m³'], 'pm25': ['molecule', 'µg/m³'], 'co2': ['molecule-co2', 'ppm'],
-               'tvocs': ['molecule', 'ppb'], 'temperature': ['thermometer', '°C'], 'humidity': ['water-percent', '%'], 'score': ['molecule', '%']}
+        air_attr = {'pm10': ['molecule', 'µg/m³'], 'pm25': ['molecule', 'µg/m³'], 'co2': ['molecule-co2', 'ppm'], 'tvocs': ['molecule', 'ppb'], 'temperature': ['thermometer', '°C'], 'humidity': ['water-percent', '%'], 'score': ['periodic-table', '%']}
         
         for key, icon_unit in air_attr.items():
             icon, unit = icon_unit
@@ -775,7 +744,6 @@ def publish_discovery(dev, sub=''):
                 'uniq_id': f'kocom_air_{key}',
                 'icon': f'mdi:{icon}',
                 'unit_of_meas': unit,
-                'ret': True,
                 'device': {
                     'name': 'kocom_wallpad',
                     'ids': 'kocom_wallpad',
@@ -798,7 +766,6 @@ def publish_discovery(dev, sub=''):
             'pl_on': 'on',
             'pl_off': 'off',
             'ic': 'mdi:gas-cylinder',
-            'qos': 0,
             'uniq_id': 'kocom_gas',
             'device': {
                 'name': 'kocom_wallpad',
@@ -838,20 +805,19 @@ def publish_discovery(dev, sub=''):
             logging.info(logtxt)
     elif dev == 'light':
         sub2 = room_h_dic.get(sub)
-        for num in range(0, int(config.get('User', 'light_count'))):
+        for num in range(1, int(config.get('User', 'light_count'))+1):
             # ha_topic = 'homeassistant/light/kocom_livingroom_light1/config'
             topic = 'homeassistant/light/kocom_{}_light{}/config'.format(sub, num)
             payload = {
-                'name': 'kocom_light_{}_{}'.format(sub2, num),
+                'name': 'kocom_light_{}_{}'.format(sub2, num -1),
                 'cmd_t': 'kocom/{}/light/{}/command'.format(sub, num),
                 'stat_t': 'kocom/{}/light/state'.format(sub),
                 'stat_val_tpl': '{{ value_json.light_' + str(num) + ' }}',
                 'pl_on': 'on',
                 'pl_off': 'off',
-                'qos': 0,
                 # 'uniq_id': '{}_{}_{}{}'.format('kocom', 'wallpad', dev, num),      # 20221108 주석처리
                 # 20221108 수정
-                'uniq_id': 'kocom_light_{}_{}'.format(sub2, num),
+                'uniq_id': 'kocom_light_{}_{}'.format(sub2, num -1),
                 'device': {
                     'name': 'kocom_wallpad',
                     'ids': 'kocom_wallpad',
@@ -883,8 +849,6 @@ def publish_discovery(dev, sub=''):
             'modes': ['off', 'heat'],
             'min_temp': 10,
             'max_temp': 30,
-            'ret': 'false',
-            'qos': 0,
             'uniq_id': 'kocom_thermostat_{}'.format(num),
             'device': {
                 'name': 'kocom_wallpad',
@@ -922,8 +886,6 @@ def publish_discovery(dev, sub=''):
             'fan_modes': ['LOW', 'MEDIUM', 'HIGH'],
             'min_temp': 10,
             'max_temp': 30,
-            'ret': 'false',
-            'qos': 0,
             'uniq_id': 'kocom_ac_{}'.format(num),
             'device': {
                 'name': 'kocom_wallpad',
@@ -942,7 +904,6 @@ def publish_discovery(dev, sub=''):
         payload = {
             'name': 'kocom_wallpad_query',
             'cmd_t': 'kocom/myhome/query/command',
-            'qos': 0,
             'uniq_id': 'kocom_wallpad_query',
             'device': {
                 'name': 'kocom_wallpad',
@@ -970,8 +931,7 @@ def poll_state(enforce=False):
     # thread health check
     for thread_instance in thread_list:
         if thread_instance.is_alive() == False:
-            logging.error('[THREAD] {} is not active. starting.'.format(
-                thread_instance.name))
+            logging.error('[THREAD] {} is not active. starting.'.format(thread_instance.name))
             thread_instance.start()
 
     for t in dev_list:
@@ -1024,13 +984,11 @@ def read_serial():
                 chksum_buf = buf[chksum_position*2:chksum_position*2+2]
                 if chksum_calc == chksum_buf and buf[-len(trailer_h):] == trailer_h:
                     if msg_q.full():
-                        logging.error(
-                            'msg_q is full. probably error occured while running listen_hexdata thread. please manually restart the program.')
+                        logging.error('msg_q is full. probably error occured while running listen_hexdata thread. please manually restart the program.')
                     msg_q.put(buf)  # valid packet
                     buf = ''
                 else:
-                    logging.info(
-                        '[comm] invalid packet {} expected checksum {}'.format(buf, chksum_calc))
+                    logging.info('[comm] invalid packet {} expected checksum {}'.format(buf, chksum_calc))
                     frame_start = buf.find(header_h, len(header_h))
                     # if there's header packet in the middle of invalid packet, re-parse from that posistion
                     if frame_start < 0:
@@ -1070,8 +1028,7 @@ def listen_hexdata():
             if p_ret['dest_h'] == wait_target.queue[0] and p_ret['type'] == 'ack':
                 # if p_ret['src_h'] == wait_target.queue[0] and p_ret['type'] == 'send':
                 if len(ack_data) != 0:
-                    logging.info(
-                        '[ACK] No ack received, but responce packet received before ACK. Assuming ACK OK')
+                    logging.info('[ACK] No ack received, but responce packet received before ACK. Assuming ACK OK')
                     ack_q.put(d)
                     time.sleep(0.5)
                 wait_q.put(p_ret)
@@ -1090,15 +1047,12 @@ if __name__ == '__main__':
 
     if config.get('RS485', 'type') == 'serial':
         import serial
-        rs485 = RS485Wrapper(serial_port=config.get(
-            'RS485', 'serial_port', fallback=None))
+        rs485 = RS485Wrapper(serial_port=config.get('RS485', 'serial_port', fallback=None))
     elif config.get('RS485', 'type') == 'socket':
         import socket
-        rs485 = RS485Wrapper(socket_server=config.get(
-            'RS485', 'socket_server'), socket_port=int(config.get('RS485', 'socket_port')))
+        rs485 = RS485Wrapper(socket_server=config.get('RS485', 'socket_server'), socket_port=int(config.get('RS485', 'socket_port')))
     else:
-        logging.error(
-            '[CONFIG] invalid type value in [RS485]: only "serial" or "socket" is allowed. exit')
+        logging.error('[CONFIG] invalid type value in [RS485]: only "serial" or "socket" is allowed. exit')
         exit(1)
     if rs485.connect() == False:
         logging.error('[RS485] connection error. exit')
@@ -1120,10 +1074,8 @@ if __name__ == '__main__':
     cache_data = []
 
     thread_list = []
-    thread_list.append(threading.Thread(
-        target=read_serial, name='read_serial'))
-    thread_list.append(threading.Thread(
-        target=listen_hexdata, name='listen_hexdata'))
+    thread_list.append(threading.Thread(target=read_serial, name='read_serial'))
+    thread_list.append(threading.Thread(target=listen_hexdata, name='listen_hexdata'))
     for thread_instance in thread_list:
         thread_instance.start()
 
