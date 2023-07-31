@@ -39,13 +39,13 @@ type_t_dic = {'30b': 'send', '30d': 'ack'}
 seq_t_dic = {'c': 1, 'd': 2, 'e': 3, 'f': 4}
 device_t_dic = {'01': 'wallpad', '0e': 'light', '2c': 'gas', '36': 'thermo', '39': 'ac', '3b': 'plug', '44': 'elevator', '48': 'fan', '98': 'air'}
 cmd_t_dic = {'00': 'state', '01': 'on', '02': 'off', '3a': 'query'}
-room_t_dic = {'00': 'livingroom', '01': 'bedroom', '02': 'room1', '03': 'room2'}
+room_t_dic = {'00': 'livingroom', '01': 'bedroom', '02': 'room1', '03': 'room2', '04': 'kitchin'}
 
 type_h_dic = {v: k for k, v in type_t_dic.items()}
 seq_h_dic = {v: k for k, v in seq_t_dic.items()}
 device_h_dic = {v: k for k, v in device_t_dic.items()}
 cmd_h_dic = {v: k for k, v in cmd_t_dic.items()}
-room_h_dic = {'livingroom': '00', 'bedroom': '01', 'room1': '02', 'room2': '03'}
+room_h_dic = {'livingroom': '00', 'bedroom': '01', 'room1': '02', 'room2': '03', '04': 'kitchin'}
 
 # mqtt functions ----------------------------
 
