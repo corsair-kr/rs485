@@ -1,5 +1,5 @@
 {
 	"name": "Home Assistant Add-on: Kocom",
-	"url": "https://github.com/harwin1/kocom.py",
+	"url": "https://github.com/corsair-kr/rs485",
 	"maintainer": "harwin1"
 }
